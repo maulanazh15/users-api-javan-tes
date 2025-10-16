@@ -6,12 +6,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
-})->middleware('auth:sanctum');
+})->middleware('auth:sanctum')->name('current.user');
 
-Route::post('/login', [UserController::class, 'login']);
+Route::post('/login', [UserController::class, 'login'])->name('users.login');
 
 Route::prefix('users')->group(function () {
-    Route::post('/', [UserController::class, 'store']);
-    Route::get('/', [UserController::class, 'index']);
-    Route::get('/{id}', [UserController::class, 'show']);
+    Route::post('/', [UserController::class, 'store'])->name('users.store');
+    Route::get('/', [UserController::class, 'index'])->name('users.index');
+    Route::get('/{id}', [UserController::class, 'show'])->name('users.show');
 });

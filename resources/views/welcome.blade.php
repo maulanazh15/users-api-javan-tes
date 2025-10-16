@@ -109,6 +109,40 @@
                                 </a>
                             </span>
                         </li>
+                        <li class="flex items-center gap-4 py-2 relative before:border-l before:border-[#e3e3e0] dark:before:border-[#3E3E3A] before:bottom-1/2 before:top-0 before:left-[0.4rem] before:absolute">
+                            <span class="relative py-1 bg-white dark:bg-[#161615]">
+                                <span class="flex items-center justify-center rounded-full bg-[#FDFDFC] dark:bg-[#161615] shadow-[0px_0px_1px_0px_rgba(0,0,0,0.03),0px_1px_2px_0px_rgba(0,0,0,0.06)] w-3.5 h-3.5 border dark:border-[#3E3E3A] border-[#e3e3e0]">
+                                    <span class="rounded-full bg-[#dbdbd7] dark:bg-[#3E3E3A] w-1.5 h-1.5"></span>
+                                </span>
+                            </span>
+                                <span>
+        Berikut ini adalah route api yang tersedia
+        <ol>
+            <li>GET
+                <a href="{{ route('users.index') }}" class="inline-flex items-center space-x-1 font-medium underline underline-offset-4 text-[#f53003] dark:text-[#FF4433] ml-1">
+                    /api/users
+                </a>
+                 - Mendapatkan daftar semua user</li>
+            <li>
+                GET /api/users/{id}
+                <input type="search" id="searchUserId" class="border rounded-sm px-2 py-1 text-sm" placeholder="User ID">
+                <button onclick="searchUserById()" class="ml-1 px-2 py-1 bg-[#f53003] text-white rounded-sm text-sm">Cek User</button>
+                <div id="userResult" class="mt-2 text-xs"></div>
+                - Mendapatkan detail user berdasarkan ID
+            </li>
+            <li>
+                POST /api/users - Membuat user baru
+                <form id="createUserForm" class="mt-2 flex flex-col gap-2 max-w-xs">
+                    <input type="text" name="name" placeholder="Nama" class="border rounded-sm px-2 py-1 text-sm" required>
+                    <input type="email" name="email" placeholder="Email" class="border rounded-sm px-2 py-1 text-sm" required>
+                    <input type="password" name="password" placeholder="Password" class="border rounded-sm px-2 py-1 text-sm" required>
+                    <button type="submit" class="px-2 py-1 bg-[#f53003] text-white rounded-sm text-sm">Buat User</button>
+                    <div id="createUserResult" class="text-xs mt-1"></div>
+                </form>
+            </li>
+        </ol>
+    </span>
+                        </li>
                     </ul>
                     <ul class="flex gap-3 text-sm leading-normal">
                         <li>
@@ -117,6 +151,7 @@
                             </a>
                         </li>
                     </ul>
+
                 </div>
                 <div class="bg-[#fff2f2] dark:bg-[#1D0002] relative lg:-ml-px -mb-px lg:mb-0 rounded-t-lg lg:rounded-t-none lg:rounded-r-lg aspect-[335/376] lg:aspect-auto w-full lg:w-[438px] shrink-0 overflow-hidden">
                     {{-- Laravel Logo --}}
@@ -274,4 +309,62 @@
             <div class="h-14.5 hidden lg:block"></div>
         @endif
     </body>
+    <script>
+    // get user by id
+    function searchUserById() {
+        const id = document.getElementById('searchUserId').value;
+        const resultDiv = document.getElementById('userResult');
+        resultDiv.textContent = 'Loading...';
+        fetch('/api/users/' + id)
+            .then(async response => {
+                const data = await response.json();
+                if (response.ok) {
+                    resultDiv.textContent = 'Nama: ' + data.data.name + ', Email: ' + data.data.email;
+                } else {
+                    resultDiv.textContent = data.errors?.message?.[0] || 'User tidak ditemukan';
+                }
+            })
+            .catch(() => {
+                resultDiv.textContent = 'Terjadi kesalahan';
+            });
+    }
+
+    // create user
+    document.getElementById('createUserForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const resultDiv = document.getElementById('createUserResult');
+        resultDiv.textContent = 'Loading...';
+        fetch('/api/users', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+                name: form.name.value,
+                email: form.email.value,
+                password: form.password.value
+            })
+        })
+        .then(async response => {
+            const data = await response.json();
+            if (response.status === 201) {
+                resultDiv.textContent = 'User berhasil dibuat: ' + data.data.name + ' (' + data.data.email + ')';
+                form.reset();
+            } else {
+                let msg = '';
+                if (data.errors) {
+                    for (const key in data.errors) {
+                        msg += data.errors[key].join(', ') + ' ';
+                    }
+                }
+                resultDiv.textContent = msg || 'Gagal membuat user';
+            }
+        })
+        .catch(() => {
+            resultDiv.textContent = 'Terjadi kesalahan';
+        });
+    });
+</script>
 </html>
